@@ -1,18 +1,18 @@
 import Foundation
 
-class XMLStack {
-    private var stack: [XMLNode] = []
+class RSSXMLStack {
+    private var stack: [RSSXMLNode] = []
 
-    func push(_ node: XMLNode) {
+    func push(_ node: RSSXMLNode) {
         stack.append(node)
     }
 
     @discardableResult
-    func pop() -> XMLNode? {
+    func pop() -> RSSXMLNode? {
         stack.popLast()
     }
 
-    func top() -> XMLNode? {
+    func top() -> RSSXMLNode? {
         stack.last
     }
 

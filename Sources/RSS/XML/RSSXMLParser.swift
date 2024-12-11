@@ -4,26 +4,26 @@ import Foundation
     import FoundationXML
 #endif
 
-class XMLParser: NSObject {
-    let parser: FoundationXML.XMLParser
-    var stack: XMLStack
-    var error: XMLError?
+class RSSXMLParser: NSObject {
+    let parser: XMLParser
+    var stack: RSSXMLStack
+    var error: RSSXMLError?
     var isComplete = false
 
     init(data: Data) {
-        self.parser = FoundationXML.XMLParser(data: data)
-        self.stack = XMLStack()
+        self.parser = XMLParser(data: data)
+        self.stack = RSSXMLStack()
         super.init()
         self.parser.delegate = self
     }
 
-    func parse() -> Result<XMLDocument, XMLError> {
+    func parse() throws -> RSSXMLDocument {
         guard parser.parse(), error == nil, let root = stack.pop() else {
             let error = error ?? .unexpected(reason: "An unknown error occurred or the parsing operation aborted.")
-            return .failure(error)
+            throw error
         }
 
-        return .success(.init(root: root))
+        return RSSXMLDocument(root: root)
     }
 
     func map(_ string: String) {
@@ -34,10 +34,10 @@ class XMLParser: NSObject {
 }
 
 // MARK: - XMLParserDelegate
-extension XMLParser: XMLParserDelegate {
+extension RSSXMLParser: XMLParserDelegate {
 
     func parser(
-        _ parser: FoundationXML.XMLParser,
+        _ parser: XMLParser,
         didStartElement elementName: String,
         namespaceURI: String?,
         qualifiedName qName: String?,
@@ -63,11 +63,11 @@ extension XMLParser: XMLParserDelegate {
         }
     }
 
-    func parser(_ parser: FoundationXML.XMLParser, foundCharacters string: String) {
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
         map(string)
     }
 
-    func parser(_ parser: FoundationXML.XMLParser, foundCDATA CDATABlock: Data) {
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
         guard let string = String(data: CDATABlock, encoding: .utf8) else {
             self.error = .cdataDecoding(element: stack.top()?.name ?? "")
             parser.abortParsing()
@@ -77,7 +77,7 @@ extension XMLParser: XMLParserDelegate {
     }
 
     func parser(
-        _ parser: FoundationXML.XMLParser,
+        _ parser: XMLParser,
         didEndElement elementName: String,
         namespaceURI: String?,
         qualifiedName qName: String?
@@ -103,9 +103,7 @@ extension XMLParser: XMLParserDelegate {
         stack.top()?.children?.append(node)
     }
 
-    func parserDidEndDocument(
-        _ parser: FoundationXML.XMLParser
-    ) {
+    func parserDidEndDocument(_ parser: XMLParser) {
         #if DEBUG
             if !isComplete {
                 print("Parsing ended without reaching the root path.")

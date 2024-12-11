@@ -1,6 +1,6 @@
 import Foundation
 
-public enum XMLError: Error {
+public enum RSSXMLError: Error {
     case notFound
     case cdataDecoding(element: String)
     case invalidURL
@@ -9,7 +9,7 @@ public enum XMLError: Error {
     case unexpected(reason: String)
 }
 
-extension XMLError: LocalizedError {
+extension RSSXMLError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .notFound:
