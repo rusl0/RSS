@@ -1,9 +1,11 @@
 import Foundation
 
-public struct RSSFeedCategory: Codable, Equatable, Hashable {
-    public var text: String?
+public struct RSSFeedCategoryAttributes: Codable, Equatable, Hashable {
+    public var domain: String?
 
-    public init(text: String? = nil) {
-        self.text = text
+    public init(domain: String? = nil) {
+        self.domain = domain
     }
 }
+
+public typealias RSSFeedCategory = RSSFeedAttributesElement<RSSFeedCategoryAttributes>

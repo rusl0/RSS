@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RSSFeedEnclosure: Codable, Equatable, Hashable {
+public struct RSSFeedEnclosureAttributes: Codable, Equatable, Hashable {
     public var url: String?
     public var length: Int64?
     public var type: String?
@@ -11,3 +11,5 @@ public struct RSSFeedEnclosure: Codable, Equatable, Hashable {
         self.type = type
     }
 }
+
+public typealias RSSFeedEnclosure = RSSFeedAttributesElement<RSSFeedEnclosureAttributes>

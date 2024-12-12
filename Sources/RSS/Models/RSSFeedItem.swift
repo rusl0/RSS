@@ -8,7 +8,7 @@ public struct RSSFeedItem {
     public var author: String?
     public var categories: [RSSFeedCategory]?
     public var comments: String?
-    public var enclosure: RSSFeedEnclosure?
+    public var enclosure: [RSSFeedEnclosure]?
     public var guid: String?
     public var pubDate: Date?
 
@@ -19,7 +19,7 @@ public struct RSSFeedItem {
         author: String? = nil,
         categories: [RSSFeedCategory]? = nil,
         comments: String? = nil,
-        enclosure: RSSFeedEnclosure? = nil,
+        enclosure: [RSSFeedEnclosure]? = nil,
         guid: String? = nil,
         pubDate: Date? = nil
     ) {
@@ -67,7 +67,7 @@ extension RSSFeedItem: Codable {
         author = try container.decodeIfPresent(String.self, forKey: RSSFeedItem.CodingKeys.author)
         categories = try container.decodeIfPresent([RSSFeedCategory].self, forKey: RSSFeedItem.CodingKeys.category)
         comments = try container.decodeIfPresent(String.self, forKey: RSSFeedItem.CodingKeys.comments)
-        enclosure = try container.decodeIfPresent(RSSFeedEnclosure.self, forKey: RSSFeedItem.CodingKeys.enclosure)
+        enclosure = try container.decodeIfPresent([RSSFeedEnclosure].self, forKey: RSSFeedItem.CodingKeys.enclosure)
         guid = try container.decodeIfPresent(String.self, forKey: RSSFeedItem.CodingKeys.guid)
         pubDate = try container.decodeIfPresent(Date.self, forKey: RSSFeedItem.CodingKeys.pubDate)
     }
