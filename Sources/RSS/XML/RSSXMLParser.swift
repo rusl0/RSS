@@ -6,24 +6,24 @@ import Foundation
 
 class RSSXMLParser: NSObject {
     let parser: XMLParser
-    var stack: RSSXMLStack
-    var error: RSSXMLError?
+    var stack: XMLStack
+    var error: XMLError?
     var isComplete = false
 
     init(data: Data) {
-        self.parser = XMLParser(data: data)
-        self.stack = RSSXMLStack()
+        parser = XMLParser(data: data)
+        stack = XMLStack()
         super.init()
-        self.parser.delegate = self
+        parser.delegate = self
     }
 
-    func parse() throws -> RSSXMLDocument {
+    func parse() -> Result<XMLDocument, XMLError> {
         guard parser.parse(), error == nil, let root = stack.pop() else {
             let error = error ?? .unexpected(reason: "An unknown error occurred or the parsing operation aborted.")
-            throw error
+            return .failure(error)
         }
 
-        return RSSXMLDocument(root: root)
+        return .success(.init(root: root))
     }
 
     func map(_ string: String) {
@@ -34,8 +34,8 @@ class RSSXMLParser: NSObject {
 }
 
 // MARK: - XMLParserDelegate
-extension RSSXMLParser: XMLParserDelegate {
 
+extension RSSXMLParser: XMLParserDelegate {
     func parser(
         _ parser: XMLParser,
         didStartElement elementName: String,
@@ -43,49 +43,77 @@ extension RSSXMLParser: XMLParserDelegate {
         qualifiedName qName: String?,
         attributes attributeDict: [String: String] = [:]
     ) {
-        if attributeDict.isEmpty {
-            stack.push(.init(name: elementName))
-        } else {
+        let isXhtml = attributeDict["type"] == "xhtml"
+        if isXhtml {
             stack.push(
                 .init(
                     name: elementName,
+                    isXhtml: isXhtml,
                     children: [
                         .init(
                             name: "@attributes",
                             children: attributeDict.map {
                                 .init(
-                                    name: $0, text: $1
+                                    name: $0,
+                                    text: $1
                                 )
                             }
                         )
                     ])
             )
+        } else if let node = stack.top(), node.isXhtml {
+            node.text = node.text?.appending("<\(elementName)") ?? "<\(elementName)"
+            for (key, value) in attributeDict {
+                node.text! += " \(key)=\"\(value)\""
+            }
+            node.text = node.text?.appending(">") ?? node.text
+        } else {
+            if attributeDict.isEmpty {
+                stack.push(
+                    .init(
+                        name: elementName
+                    ))
+            } else {
+                stack.push(
+                    .init(
+                        name: elementName,
+                        children: [
+                            .init(
+                                name: "@attributes",
+                                children: attributeDict.map {
+                                    .init(
+                                        name: $0,
+                                        text: $1
+                                    )
+                                }
+                            )
+                        ])
+                )
+            }
         }
     }
 
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
+    func parser(
+        _ parser: XMLParser,
+        foundCharacters string: String
+    ) {
         map(string)
     }
 
     func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
         guard let string = String(data: CDATABlock, encoding: .utf8) else {
-            self.error = .cdataDecoding(element: stack.top()?.name ?? "")
+            error = .cdataDecoding(element: stack.top()?.name ?? "")
             parser.abortParsing()
             return
         }
         map(string)
     }
 
-    func parser(
-        _ parser: XMLParser,
-        didEndElement elementName: String,
-        namespaceURI: String?,
-        qualifiedName qName: String?
-    ) {
+    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         guard let node = stack.top() else { return }
 
         // If exiting an XHTML element, close it as plain text.
-        if node.name != elementName {
+        if node.isXhtml, node.name != elementName {
             node.text = (node.text ?? "") + "</\(elementName)>"
             return
         }
@@ -100,7 +128,7 @@ extension RSSXMLParser: XMLParserDelegate {
             return
         }
 
-        stack.top()?.children?.append(node)
+        stack.top()?.children.append(node)
     }
 
     func parserDidEndDocument(_ parser: XMLParser) {
@@ -111,7 +139,7 @@ extension RSSXMLParser: XMLParserDelegate {
         #endif
     }
 
-    func parser(_ parser: FoundationXML.XMLParser, parseErrorOccurred parseError: Error) {
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
         guard !isComplete, error == nil else { return }
         error = .unexpected(reason: parseError.localizedDescription)
     }
