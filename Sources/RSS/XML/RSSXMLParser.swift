@@ -17,13 +17,12 @@ class RSSXMLParser: NSObject {
         parser.delegate = self
     }
 
-    func parse() -> Result<XMLDocument, XMLError> {
+    func parse() throws -> XMLDocument {
         guard parser.parse(), error == nil, let root = stack.pop() else {
-            let error = error ?? .unexpected(reason: "An unknown error occurred or the parsing operation aborted.")
-            return .failure(error)
+            throw error ?? .unexpected(reason: "An unknown error occurred or the parsing operation aborted.")
         }
 
-        return .success(.init(root: root))
+        return XMLDocument(root: root)
     }
 
     func map(_ string: String) {
@@ -36,67 +35,24 @@ class RSSXMLParser: NSObject {
 // MARK: - XMLParserDelegate
 
 extension RSSXMLParser: XMLParserDelegate {
-    func parser(
-        _ parser: XMLParser,
-        didStartElement elementName: String,
-        namespaceURI: String?,
-        qualifiedName qName: String?,
-        attributes attributeDict: [String: String] = [:]
-    ) {
-        let isXhtml = attributeDict["type"] == "xhtml"
-        if isXhtml {
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
+        if attributeDict.isEmpty {
+            stack.push(.init(name: elementName))
+        } else {
             stack.push(
                 .init(
                     name: elementName,
-                    isXhtml: isXhtml,
                     children: [
                         .init(
                             name: "@attributes",
-                            children: attributeDict.map {
-                                .init(
-                                    name: $0,
-                                    text: $1
-                                )
-                            }
+                            children: attributeDict.map { .init(name: $0, text: $1) }
                         )
                     ])
             )
-        } else if let node = stack.top(), node.isXhtml {
-            node.text = node.text?.appending("<\(elementName)") ?? "<\(elementName)"
-            for (key, value) in attributeDict {
-                node.text! += " \(key)=\"\(value)\""
-            }
-            node.text = node.text?.appending(">") ?? node.text
-        } else {
-            if attributeDict.isEmpty {
-                stack.push(
-                    .init(
-                        name: elementName
-                    ))
-            } else {
-                stack.push(
-                    .init(
-                        name: elementName,
-                        children: [
-                            .init(
-                                name: "@attributes",
-                                children: attributeDict.map {
-                                    .init(
-                                        name: $0,
-                                        text: $1
-                                    )
-                                }
-                            )
-                        ])
-                )
-            }
         }
     }
 
-    func parser(
-        _ parser: XMLParser,
-        foundCharacters string: String
-    ) {
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
         map(string)
     }
 
@@ -112,14 +68,6 @@ extension RSSXMLParser: XMLParserDelegate {
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         guard let node = stack.top() else { return }
 
-        // If exiting an XHTML element, close it as plain text.
-        if node.isXhtml, node.name != elementName {
-            node.text = (node.text ?? "") + "</\(elementName)>"
-            return
-        }
-
-        // Sanitize the node's text by trimming whitespace and newlines.
-        // If the resulting text is empty, set it to nil.
         node.text = node.text?.trimmingCharacters(in: .whitespacesAndNewlines)
         node.text = node.text?.isEmpty == true ? nil : node.text
 
@@ -129,14 +77,6 @@ extension RSSXMLParser: XMLParserDelegate {
         }
 
         stack.top()?.children.append(node)
-    }
-
-    func parserDidEndDocument(_ parser: XMLParser) {
-        #if DEBUG
-            if !isComplete {
-                print("Parsing ended without reaching the root path.")
-            }
-        #endif
     }
 
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {

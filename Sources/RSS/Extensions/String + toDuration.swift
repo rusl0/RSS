@@ -1,9 +1,6 @@
 import Foundation
 
 extension String {
-    /// Convert the string representation of a time duration to a Time Interval.
-    ///
-    /// - Returns: A TimeInterval.
     func toDuration() -> TimeInterval? {
         let comps = trimmingCharacters(in: .whitespacesAndNewlines)
             .components(separatedBy: ":")

@@ -6,6 +6,19 @@ public struct RSSFeed {
     public init(channel: RSSFeedChannel? = nil) {
         self.channel = channel
     }
+
+    public init(data: Data) throws {
+        let parser = RSSXMLParser(data: data)
+        let result = try parser.parse()
+
+        guard let rootNode = result.root else {
+            throw XMLError.unexpected(reason: "Unexpected parsing result. Root node is nil.")
+        }
+
+        let decoder = XMLDecoder()
+        decoder.dateDecodingStrategy = .formatter(FeedDateFormatter(spec: .permissive))
+        self = try decoder.decode(Self.self, from: rootNode)
+    }
 }
 
 // MARK: - Equatable
@@ -21,19 +34,6 @@ extension RSSFeed: Hashable {}
 extension RSSFeed: Codable {
     private enum CodingKeys: CodingKey {
         case channel
-    }
-
-    init(data: Data) throws {
-        let parser = RSSXMLParser(data: data)
-        let result = try parser.parse().get()
-
-        guard let rootNode = result.root else {
-            throw XMLError.unexpected(reason: "Unexpected parsing result. Root node is nil.")
-        }
-
-        let decoder = XMLDecoder()
-        decoder.dateDecodingStrategy = .formatter(FeedDateFormatter(spec: .permissive))
-        self = try decoder.decode(Self.self, from: rootNode)
     }
 
     public init(from decoder: any Decoder) throws {
