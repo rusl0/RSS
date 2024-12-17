@@ -31,7 +31,7 @@ extension RSSFeed: Hashable {}
 
 // MARK: - Codable
 
-extension RSSFeed: Codable {
+extension RSSFeed: Decodable {
     private enum CodingKeys: CodingKey {
         case channel
     }
@@ -40,11 +40,5 @@ extension RSSFeed: Codable {
         let container: KeyedDecodingContainer<RSSFeed.CodingKeys> = try decoder.container(keyedBy: RSSFeed.CodingKeys.self)
 
         channel = try container.decodeIfPresent(RSSFeedChannel.self, forKey: RSSFeed.CodingKeys.channel)
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container: KeyedEncodingContainer<RSSFeed.CodingKeys> = encoder.container(keyedBy: RSSFeed.CodingKeys.self)
-
-        try container.encodeIfPresent(channel, forKey: RSSFeed.CodingKeys.channel)
     }
 }

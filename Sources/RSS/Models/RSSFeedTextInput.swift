@@ -24,7 +24,7 @@ extension RSSFeedTextInput: Hashable {}
 
 // MARK: - Codable
 
-extension RSSFeedTextInput: Codable {
+extension RSSFeedTextInput: Decodable {
     private enum CodingKeys: CodingKey {
         case title
         case description
@@ -39,14 +39,5 @@ extension RSSFeedTextInput: Codable {
         description = try container.decodeIfPresent(String.self, forKey: RSSFeedTextInput.CodingKeys.description)
         name = try container.decodeIfPresent(String.self, forKey: RSSFeedTextInput.CodingKeys.name)
         link = try container.decodeIfPresent(String.self, forKey: RSSFeedTextInput.CodingKeys.link)
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container: KeyedEncodingContainer<RSSFeedTextInput.CodingKeys> = encoder.container(keyedBy: RSSFeedTextInput.CodingKeys.self)
-
-        try container.encodeIfPresent(title, forKey: RSSFeedTextInput.CodingKeys.title)
-        try container.encodeIfPresent(description, forKey: RSSFeedTextInput.CodingKeys.description)
-        try container.encodeIfPresent(name, forKey: RSSFeedTextInput.CodingKeys.name)
-        try container.encodeIfPresent(link, forKey: RSSFeedTextInput.CodingKeys.link)
     }
 }

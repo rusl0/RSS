@@ -53,7 +53,7 @@ extension RSSFeedChannel: Hashable {}
 
 // MARK: - Codable
 
-extension RSSFeedChannel: Codable {
+extension RSSFeedChannel: Decodable {
     private enum CodingKeys: CodingKey {
         case title
         case link
@@ -84,22 +84,5 @@ extension RSSFeedChannel: Codable {
         skipHours = try container.decodeIfPresent(RSSFeedSkipHours.self, forKey: RSSFeedChannel.CodingKeys.skipHours)
         skipDays = try container.decodeIfPresent(RSSFeedSkipDays.self, forKey: RSSFeedChannel.CodingKeys.skipDays)
         items = try container.decodeIfPresent([RSSFeedItem].self, forKey: RSSFeedChannel.CodingKeys.item)
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container: KeyedEncodingContainer<RSSFeedChannel.CodingKeys> = encoder.container(keyedBy: RSSFeedChannel.CodingKeys.self)
-
-        try container.encodeIfPresent(title, forKey: RSSFeedChannel.CodingKeys.title)
-        try container.encodeIfPresent(link, forKey: RSSFeedChannel.CodingKeys.link)
-        try container.encodeIfPresent(description, forKey: RSSFeedChannel.CodingKeys.description)
-        try container.encodeIfPresent(language, forKey: RSSFeedChannel.CodingKeys.language)
-        try container.encodeIfPresent(copyright, forKey: RSSFeedChannel.CodingKeys.copyright)
-        try container.encodeIfPresent(pubDate, forKey: RSSFeedChannel.CodingKeys.pubDate)
-        try container.encodeIfPresent(lastBuildDate, forKey: RSSFeedChannel.CodingKeys.lastBuildDate)
-        try container.encodeIfPresent(categories, forKey: RSSFeedChannel.CodingKeys.category)
-        try container.encodeIfPresent(image, forKey: RSSFeedChannel.CodingKeys.image)
-        try container.encodeIfPresent(skipHours, forKey: RSSFeedChannel.CodingKeys.skipHours)
-        try container.encodeIfPresent(skipDays, forKey: RSSFeedChannel.CodingKeys.skipDays)
-        try container.encodeIfPresent(items, forKey: RSSFeedChannel.CodingKeys.item)
     }
 }

@@ -39,7 +39,7 @@ extension RSSFeedSkipDays: Hashable {}
 
 // MARK: - Codable
 
-extension RSSFeedSkipDays: Codable {
+extension RSSFeedSkipDays: Decodable {
     private enum CodingKeys: CodingKey {
         case day
     }
@@ -48,11 +48,5 @@ extension RSSFeedSkipDays: Codable {
         let container: KeyedDecodingContainer<RSSFeedSkipDays.CodingKeys> = try decoder.container(keyedBy: RSSFeedSkipDays.CodingKeys.self)
 
         days = try container.decodeIfPresent([RSSFeedSkipDay].self, forKey: RSSFeedSkipDays.CodingKeys.day)
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container: KeyedEncodingContainer<RSSFeedSkipDays.CodingKeys> = encoder.container(keyedBy: RSSFeedSkipDays.CodingKeys.self)
-
-        try container.encodeIfPresent(days, forKey: RSSFeedSkipDays.CodingKeys.day)
     }
 }

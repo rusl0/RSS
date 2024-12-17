@@ -45,7 +45,7 @@ extension RSSFeedItem: Hashable {}
 
 // MARK: - Codable
 
-extension RSSFeedItem: Codable {
+extension RSSFeedItem: Decodable {
     private enum CodingKeys: CodingKey {
         case title
         case link
@@ -70,19 +70,5 @@ extension RSSFeedItem: Codable {
         enclosure = try container.decodeIfPresent([RSSFeedEnclosure].self, forKey: RSSFeedItem.CodingKeys.enclosure)
         guid = try container.decodeIfPresent(String.self, forKey: RSSFeedItem.CodingKeys.guid)
         pubDate = try container.decodeIfPresent(Date.self, forKey: RSSFeedItem.CodingKeys.pubDate)
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container: KeyedEncodingContainer<RSSFeedItem.CodingKeys> = encoder.container(keyedBy: RSSFeedItem.CodingKeys.self)
-
-        try container.encodeIfPresent(title, forKey: RSSFeedItem.CodingKeys.title)
-        try container.encodeIfPresent(link, forKey: RSSFeedItem.CodingKeys.link)
-        try container.encodeIfPresent(description, forKey: RSSFeedItem.CodingKeys.description)
-        try container.encodeIfPresent(author, forKey: RSSFeedItem.CodingKeys.author)
-        try container.encodeIfPresent(categories, forKey: RSSFeedItem.CodingKeys.category)
-        try container.encodeIfPresent(comments, forKey: RSSFeedItem.CodingKeys.comments)
-        try container.encodeIfPresent(enclosure, forKey: RSSFeedItem.CodingKeys.enclosure)
-        try container.encodeIfPresent(guid, forKey: RSSFeedItem.CodingKeys.guid)
-        try container.encodeIfPresent(pubDate, forKey: RSSFeedItem.CodingKeys.pubDate)
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RSSFeedElement<Attributes: Codable & Equatable & Hashable>: Codable, Equatable, Hashable {
+public struct RSSFeedElement<Attributes: Decodable & Equatable & Hashable>: Decodable, Equatable, Hashable {
     public var text: String?
     public var attributes: Attributes?
 
@@ -19,15 +19,9 @@ public struct RSSFeedElement<Attributes: Codable & Equatable & Hashable>: Codabl
         text = try container.decodeIfPresent(String.self, forKey: .text)
         attributes = try container.decodeIfPresent(Attributes.self, forKey: .attributes)
     }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(text, forKey: .text)
-        try container.encodeIfPresent(attributes, forKey: .attributes)
-    }
 }
 
-public struct RSSFeedAttributesElement<Attributes: Codable & Equatable & Hashable>: Codable, Equatable, Hashable {
+public struct RSSFeedAttributesElement<Attributes: Decodable & Equatable & Hashable>: Decodable, Equatable, Hashable {
     public var attributes: Attributes?
 
     public init(text: String? = nil, attributes: Attributes? = nil) {
@@ -41,10 +35,5 @@ public struct RSSFeedAttributesElement<Attributes: Codable & Equatable & Hashabl
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         attributes = try container.decodeIfPresent(Attributes.self, forKey: .attributes)
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encodeIfPresent(attributes, forKey: .attributes)
     }
 }
